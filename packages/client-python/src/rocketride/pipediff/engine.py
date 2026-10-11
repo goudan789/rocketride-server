@@ -332,7 +332,7 @@ def diff_pipes(old: dict, new: dict, *, include_layout: bool = False) -> PipeDif
     source_change: tuple[Any, Any] | None = None
     old_source = old.get('source')
     new_source = new.get('source')
-    if not _json_equal(old_source, new_source):
+    if ('source' in old) != ('source' in new) or not _json_equal(old_source, new_source):
         source_change = (old_source, new_source)
 
     layout_changed = _layout_changed(old, new, old_components, new_components, old_ids & new_ids)

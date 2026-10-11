@@ -354,6 +354,21 @@ def test_source_change_is_reported_and_is_semantic(old_source, new_source):
         assert diff.has_semantic_changes is True
 
 
+@pytest.mark.parametrize(('old_has_source', 'new_has_source'), [(False, True), (True, False)])
+def test_adding_or_removing_null_source_is_semantic(old_has_source, new_has_source):
+    """An omitted source and an explicit null source have different key presence."""
+    old = _sample_pipe()
+    new = copy.deepcopy(old)
+    if old_has_source:
+        old['source'] = None
+    if new_has_source:
+        new['source'] = None
+
+    diff = diff_pipes(old, new)
+    assert diff.source_change == (None, None)
+    assert diff.has_semantic_changes is True
+
+
 def test_unchanged_source_is_not_reported():
     old = _sample_pipe()
     old['source'] = 'webhook_1'
