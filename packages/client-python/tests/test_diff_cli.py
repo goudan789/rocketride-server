@@ -185,6 +185,30 @@ async def test_identical_files_exit_0(tmp_path, capsys):
     assert captured.err == ''
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize('output_format', ['human', 'json', 'markdown'])
+async def test_source_only_change_exits_1_in_every_format(tmp_path, capsys, output_format):
+    old_pipe = _old_pipe()
+    old_pipe['source'] = 'a'
+    new_pipe = _old_pipe()
+    new_pipe['source'] = 'b'
+    old = _write_pipe(tmp_path, 'old.pipe', old_pipe)
+    new = _write_pipe(tmp_path, 'new.pipe', new_pipe)
+
+    code = await _run(_diff_args([old, new], json=output_format == 'json', markdown=output_format == 'markdown'))
+
+    out = capsys.readouterr().out
+    assert code == 1
+    if output_format == 'json':
+        doc = json.loads(out)
+        assert doc['summary']['source_change'] == ['a', 'b']
+        assert doc['summary']['has_semantic_changes'] is True
+    elif output_format == 'markdown':
+        assert '**Source:** `a` → `b`' in out
+    else:
+        assert 'Source: a -> b' in out
+
+
 # =========================================================================
 # --git mode (resolver mocked)
 # =========================================================================
